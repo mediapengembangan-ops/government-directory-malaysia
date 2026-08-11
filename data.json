@@ -1,0 +1,24 @@
+[
+  {
+    "id": "GOV0001",
+    "nama": "YB Datuk Seri Haji Mohamad bin Sabu",
+    "jawatan": "Menteri Pertanian dan Keterjaminan Makanan",
+    "kategori": "Menteri",
+    "kementerian": "Kementerian Pertanian dan Keterjaminan Makanan (KPKM)",
+    "agensi": "",
+    "status": "Aktif",
+    "gambar": "",
+    "profil": "https://www.kpkm.gov.my/bm/korporat/menteri-dan-timbalan-menteri"
+  },
+  {
+    "id": "GOV0002",
+    "nama": "YB Datuk Chan Foong Hin",
+    "jawatan": "Timbalan Menteri Pertanian dan Keterjaminan Makanan",
+    "kategori": "Timbalan Menteri",
+    "kementerian": "Kementerian Pertanian dan Keterjaminan Makanan (KPKM)",
+    "agensi": "",
+    "status": "Aktif",
+    "gambar": "",
+    "profil": "https://www.kpkm.gov.my/bm/korporat/menteri-dan-timbalan-menteri"
+  }
+]

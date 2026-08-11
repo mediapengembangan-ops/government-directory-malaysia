@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Government Directory Malaysia</title>
+<style>
+:root{--g:#155c3a;--bg:#f4f7f5;--b:#dce5df;--m:#68746e}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#17221d}
+header{background:var(--g);color:white;padding:28px 20px}.wrap{max-width:1200px;margin:auto}
+h1{margin:0 0 7px}.sub{opacity:.9}.controls{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:22px 0}
+input,select{padding:12px;border:1px solid var(--b);border-radius:9px;background:white;width:100%}
+#count{font-weight:bold;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding-bottom:40px}
+.card{background:white;border:1px solid var(--b);border-radius:13px;overflow:hidden}.photo{width:100%;height:260px;object-fit:cover;background:#e7ece9}
+.placeholder{height:260px;display:grid;place-items:center;background:#e7ece9;color:var(--m);font-weight:bold}
+.content{padding:17px}.badge{display:inline-block;background:#e6f2eb;color:var(--g);padding:5px 9px;border-radius:20px;font-size:12px;font-weight:bold}
+.name{font-size:18px;font-weight:bold;margin:10px 0 6px}.role{line-height:1.4}.meta{color:var(--m);font-size:14px;margin-top:8px}
+a{display:inline-block;margin-top:13px;color:var(--g);font-weight:bold;text-decoration:none}
+@media(max-width:760px){.controls{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>Government Directory Malaysia</h1><div class="sub">Direktori Pegawai Kanan Kerajaan Malaysia</div></div></header>
+<main class="wrap" style="padding:0 18px">
+<div class="controls">
+<input id="q" placeholder="Cari nama, jawatan, kementerian atau agensi">
+<select id="category"><option value="">Semua kategori</option></select>
+<select id="ministry"><option value="">Semua kementerian</option></select>
+<select id="agency"><option value="">Semua agensi</option></select>
+</div>
+<div id="count">Memuatkan data…</div><div id="grid" class="grid"></div>
+</main>
+<script>
+let DATA=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function fill(id, vals){const el=document.getElementById(id);[...new Set(vals.filter(Boolean))].sort().forEach(v=>{let o=document.createElement('option');o.value=v;o.textContent=v;el.appendChild(o)})}
+function render(){
+ const q=document.getElementById('q').value.toLowerCase().trim(), c=category.value, m=ministry.value, a=agency.value;
+ const rows=DATA.filter(x=>x.status==='Aktif'&&(!c||x.kategori===c)&&(!m||x.kementerian===m)&&(!a||x.agensi===a)&&(!q||Object.values(x).join(' ').toLowerCase().includes(q)));
+ count.textContent=rows.length+' rekod ditemui';
+ grid.innerHTML=rows.map(x=>`<article class="card">${x.gambar?`<img class="photo" src="${esc(x.gambar)}" alt="${esc(x.nama)}">`:`<div class="placeholder">Gambar belum dimasukkan</div>`}<div class="content"><span class="badge">${esc(x.kategori)}</span><div class="name">${esc(x.nama)}</div><div class="role">${esc(x.jawatan)}</div><div class="meta">${esc(x.kementerian)}${x.agensi?'<br>'+esc(x.agensi):''}</div>${x.profil?`<a href="${esc(x.profil)}" target="_blank" rel="noopener">Lihat profil rasmi ↗</a>`:''}</div></article>`).join('');
+}
+fetch('data.json').then(r=>{if(!r.ok)throw new Error('data.json tidak dapat dibaca');return r.json()}).then(d=>{
+ DATA=d; fill('category',DATA.map(x=>x.kategori));fill('ministry',DATA.map(x=>x.kementerian));fill('agency',DATA.map(x=>x.agensi));
+ ['q','category','ministry','agency'].forEach(id=>document.getElementById(id).addEventListener(id==='q'?'input':'change',render));render();
+}).catch(e=>{count.textContent='Ralat: '+e.message});
+</script>
+</body>
+</html>
