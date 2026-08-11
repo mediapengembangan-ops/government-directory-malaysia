@@ -40,10 +40,116 @@ function render(){
  count.textContent=rows.length+' rekod ditemui';
  grid.innerHTML=rows.map(x=>`<article class="card">${x.gambar?`<img class="photo" src="${esc(x.gambar)}" alt="${esc(x.nama)}">`:`<div class="placeholder">Gambar belum dimasukkan</div>`}<div class="content"><span class="badge">${esc(x.kategori)}</span><div class="name">${esc(x.nama)}</div><div class="role">${esc(x.jawatan)}</div><div class="meta">${esc(x.kementerian)}${x.agensi?'<br>'+esc(x.agensi):''}</div>${x.profil?`<a href="${esc(x.profil)}" target="_blank" rel="noopener">Lihat profil rasmi ↗</a>`:''}</div></article>`).join('');
 }
-fetch('data.json').then(r=>{if(!r.ok)throw new Error('data.json tidak dapat dibaca');return r.json()}).then(d=>{
- DATA=d; fill('category',DATA.map(x=>x.kategori));fill('ministry',DATA.map(x=>x.kementerian));fill('agency',DATA.map(x=>x.agensi));
- ['q','category','ministry','agency'].forEach(id=>document.getElementById(id).addEventListener(id==='q'?'input':'change',render));render();
-}).catch(e=>{count.textContent='Ralat: '+e.message});
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT41QGEbM9RkG0YnNfsa6dRs3LtffrQPTJNypR1iexzahzR0lKBYxXbtPlU9hqz_brco2vC12pBfWR9/pub?gid=0&single=true&output=csv';
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"' && quoted && next === '"') {
+      cell += '"';
+      i++;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === ',' && !quoted) {
+      row.push(cell);
+      cell = '';
+    } else if ((char === '\n' || char === '\r') && !quoted) {
+      if (char === '\r' && next === '\n') i++;
+
+      row.push(cell);
+
+      if (row.some(value => value.trim() !== '')) {
+        rows.push(row);
+      }
+
+      row = [];
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+
+  if (cell || row.length) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  const headers = rows.shift().map(h => h.trim());
+
+  return rows.map(values => {
+    const record = {};
+
+    headers.forEach((header, index) => {
+      record[header] = (values[index] || '').trim();
+    });
+
+    return {
+      id: record['ID'] || '',
+      nama: record['Nama'] || '',
+      jawatan: record['Jawatan'] || '',
+      kategori: record['Kategori'] || '',
+      kementerian: record['Kementerian'] || '',
+      agensi: record['Agensi'] || '',
+      status: record['Status'] || '',
+      gambar: record['URL Gambar'] || '',
+      profil: record['URL Profil'] || ''
+    };
+  });
+}
+
+fetch(CSV_URL)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Google Sheet tidak dapat dibaca');
+    }
+
+    return response.text();
+  })
+  .then(csv => {
+
+    DATA = parseCSV(csv);
+
+    fill(
+      'category',
+      DATA.map(x => x.kategori)
+    );
+
+    fill(
+      'ministry',
+      DATA.map(x => x.kementerian)
+    );
+
+    fill(
+      'agency',
+      DATA.map(x => x.agensi)
+    );
+
+    ['q', 'category', 'ministry', 'agency']
+      .forEach(id => {
+        document
+          .getElementById(id)
+          .addEventListener(
+            id === 'q' ? 'input' : 'change',
+            render
+          );
+      });
+
+    render();
+
+  })
+  .catch(error => {
+
+    count.textContent =
+      'Ralat memuatkan data: ' + error.message;
+
+  });
 </script>
 </body>
 </html>
